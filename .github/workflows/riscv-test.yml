@@ -31,5 +31,5 @@ jobs:
           ls ${{ github.workspace }}
       - name: build riscv64-cross
         run: |
-        cd  ${{ github.workspace }} &&  mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-riscv64.cmake ../ && make -j
+          cd  ${{ github.workspace }} &&  mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-riscv64.cmake ../ && make -j
       - run: echo "🍏 This job's status is ${{ job.status }}."
