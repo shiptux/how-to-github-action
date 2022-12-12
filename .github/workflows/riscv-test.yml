@@ -20,7 +20,8 @@ jobs:
           submodules: true
       - name: Create environment
         run: |
-          apt install -y crossbuild-essential-riscv64 cmake 
+          sudo apt update
+          sudo apt install -y crossbuild-essential-riscv64 cmake 
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v3
