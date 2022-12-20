@@ -48,16 +48,17 @@ jobs:
           for i in include lib; do sudo rsync -av ../extract/usr/${i}/riscv64-linux-gnu/ /usr/aarch64-linux-gnu/${i}/; done
           sudo rsync -av ../extract/usr/include/ /usr/aarch64-linux-gnu/include/
           sudo rsync -av ../extract/lib/aarch64-linux-gnu/ /usr/aarch64-linux-gnu/lib/ 
+      
       - name: test suite
         working-directory: ${{ github.workspace }}        
         run: |
           git clone https://github.com/shiptux/dynamorio.git
           ./suite/runsuite_wrapper.pl automated_ci 64_only
-      env:
-        DYNAMORIO_CROSS_RISCVXX_LINUX_ONLY: yes
-        CI_TRIGGER: ${{ github.event_name }}
-        CI_BRANCH: ${{ github.ref }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+        env:
+          DYNAMORIO_CROSS_RISCVXX_LINUX_ONLY: yes
+          CI_TRIGGER: ${{ github.event_name }}
+          CI_BRANCH: ${{ github.ref }}
+          run: echo "🍏 This job's status is ${{ job.status }}."
 
   riscv-qemu:
     runs-on: ubuntu-20.04
