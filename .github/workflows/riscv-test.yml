@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   riscv-cross-compile:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -62,8 +62,8 @@ jobs:
           CI_BRANCH: ${{ github.ref }}
           run: echo "🍏 This job's status is ${{ job.status }}."
 
-  riscv-qemu:
-    runs-on: ubuntu-20.04
+  riscv-debian-test:
+    runs-on: debian-11
     steps:
       - uses: actions/checkout@v2
         with:
@@ -84,3 +84,30 @@ jobs:
         run: |
           cd  ${{ github.workspace }} &&  mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-riscv64.cmake ../ && make -j
       - run: echo "🍏 This job's status is ${{ job.status }}."
+      - name: build dynamorio riscv       
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install doxygen vera++ cmake crossbuild-essential-riscv64 git  \
+          qemu-user qemu-user-binfmt
+          sudo sh -c "echo 'deb [trusted=yes arch=riscv64] http://deb.debian.org/debian-ports sid main' |tee -a /etc/apt/sources.list"
+          sudo apt update
+          apt download libunwind8:riscv64 libunwind-dev:riscv64 liblzma5:riscv64 \
+            zlib1g:riscv64 zlib1g-dev:riscv64 libsnappy1v5:riscv64 libsnappy-dev:riscv64 \
+            liblz4-1:riscv64 liblz4-dev:riscv64
+          mkdir ../extract
+          for i in *.deb; do dpkg-deb -x $i ../extract; done
+          for i in include lib; do sudo rsync -av ../extract/usr/${i}/riscv64-linux-gnu/ /usr/riscv64-linux-gnu/${i}/; done
+          sudo rsync -av ../extract/usr/include/ /usr/riscv64-linux-gnu/include/
+          sudo rsync -av ../extract/lib/riscv64-linux-gnu/ /usr/riscv64-linux-gnu/lib/ 
+      
+      - name: test suite
+        working-directory: ${{ github.workspace }}        
+        run: |
+          git clone https://github.com/shiptux/dynamorio.git
+          cd dynamorio 
+          ./suite/runsuite_wrapper.pl automated_ci 64_only
+        env:
+          DYNAMORIO_CROSS_RISCVXX_LINUX_ONLY: yes
+          CI_TRIGGER: ${{ github.event_name }}
+          CI_BRANCH: ${{ github.ref }}
+          run: echo "🍏 This job's status is ${{ job.status }}."
